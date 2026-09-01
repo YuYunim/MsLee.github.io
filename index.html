@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Love To Learn, Learn To Love 成長果園</title>
+  
+  <!-- 引入文件解析函式庫以支持 Excel / Word / PDF 匯入 -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #FFF9E6;
+      --card-bg: #FFFFFF;
+      --primary: #FF6B8B;
+      --secondary: #4ECDC4;
+      --accent-yellow: #FFE66D;
+      --accent-purple: #A06CD5;
+      --accent-orange: #FF9F43;
+      --accent-green: #2ED573;
+      --danger: #FF4757;
+      --text-main: #2F3542;
+      --border-radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 'PingFang HK', '微軟正黑體', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 頂部導航 */
+    header {
+      background: linear-gradient(135deg, #FF6B8B, #FF9F43);
+      padding: 14px 16px;
+      border-radius: var(--border-radius);
+      color: white;
+      box-shadow: 0 6px 14px rgba(255, 107, 139, 0.25);
+      margin-bottom: 12px;
+    }
+
+    .title-box h1 {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+      margin-bottom: 2px;
+    }
+
+    .title-box p {
+      font-size: 11px;
+      opacity: 0.95;
+      margin-bottom: 10px;
+    }
+
+    .class-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+      background: white;
+      color: var(--primary);
+      border: 2px solid transparent;
+      padding: 7px 12px;
+      border-radius: 24px;
+      font-weight: bold;
+      font-size: 12.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-yellow);
+      color: #333;
+      border-color: white;
+      transform: scale(1.03);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    /* 主佈局 */
+    .main-container {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+      .left-panel {
+        max-width: 100% !important;
+        max-height: none !important;
+      }
+      .right-panel {
+        max-height: none !important;
+      }
+    }
+
+    /* 左側操作區 (1/3) */
+    .left-panel {
+      flex: 1;
+      max-width: 32%;
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .panel-block {
+      background: #F8F9FA;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1.5px dashed #E2E8F0;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 4px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.1s, opacity 0.2s;
+      font-size: 11.5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+      text-align: center;
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-pink { background-color: var(--primary); }
+    .btn-teal { background-color: var(--secondary); }
+    .btn-orange { background-color: var(--accent-orange); }
+    .btn-purple { background-color: var(--accent-purple); }
+    .btn-green { background-color: var(--accent-green); }
+    .btn-danger { background-color: var(--danger); }
+    .btn-apple { background: linear-gradient(135deg, #FF4757, #FF6B81); }
+    
+    .btn-special-import {
+      background: linear-gradient(135deg, #A06CD5, #FF6B8B);
+      color: white;
+      width: 100%;
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .category-label {
+      font-size: 10.5px;
+      font-weight: bold;
+      color: #718096;
+      margin: 4px 0 2px;
+    }
+
+    /* 右側名單區 (2/3) */
+    .right-panel {
+      flex: 2;
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .roster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid #F1F2F6;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .selection-info {
+      font-size: 12.5px;
+      color: #57606F;
+      font-weight: bold;
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      gap: 8px;
+    }
+
+    /* 學生卡片 */
+    .student-card {
+      background: #FAFAFA;
+      border: 2.5px solid #ECECEC;
+      border-radius: 14px;
+      padding: 7px 4px 8px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .student-card:active {
+      transform: scale(0.96);
+    }
+
+    .student-card.selected {
+      border-color: var(--primary);
+      background-color: #FFF0F5;
+      box-shadow: 0 0 0 2px rgba(255, 107, 139, 0.3);
+    }
+
+    .badge-num {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: #747D8C;
+      color: white;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 9px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sub-badge {
+      position: absolute;
+      top: 4px;
+      left: 24px;
+      background: #4ECDC4;
+      color: white;
+      padding: 1px 3px;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: bold;
+    }
+
+    .btn-notes {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: transparent;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .tree-display {
+      font-size: 26px;
+      margin: 1px 0 0;
+      line-height: 1;
+    }
+
+    .tree-stage {
+      font-size: 9px;
+      color: #888;
+      font-weight: bold;
+    }
+
+    .student-name {
+      font-weight: 800;
+      font-size: 13px;
+      color: #2F3542;
+      margin-top: 1px;
+    }
+
+    .growth-bar-box {
+      width: 85%;
+      height: 5px;
+      background: #E2E8F0;
+      border-radius: 8px;
+      margin: 3px 0 2px;
+      overflow: hidden;
+    }
+    .growth-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ECDC4, #2ED573);
+      border-radius: 8px;
+      transition: width 0.2s ease;
+    }
+
+    .score-label {
+      font-size: 9.5px;
+      color: #718096;
+      font-weight: bold;
+    }
+
+    .apple-badge-container {
+      margin-top: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+    }
+
+    .apple-badge {
+      background: #FFE8EC;
+      color: #D63031;
+      border: 1px solid #FF7675;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .btn-quick-redeem {
+      background: #FF4757;
+      color: white;
+      border: none;
+      padding: 1px 5px;
+      border-radius: 6px;
+      font-size: 9.5px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .redeemed-badge {
+      font-size: 8.5px;
+      color: #A4B0BE;
+      font-weight: 600;
+    }
+
+    /* 彈窗樣式 */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 12px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+      text-align: center;
+      position: relative;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      font-size: 22px;
+      cursor: pointer;
+      color: #999;
+      font-weight: bold;
+    }
+
+    .lottery-roll {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 16px 0;
+      height: 40px;
+    }
+
+    .rank-list {
+      max-height: 260px;
+      overflow-y: auto;
+      text-align: left;
+      margin: 10px 0;
+    }
+
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 1px solid #F1F2F6;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .note-input, .text-input {
+      width: 100%;
+      padding: 8px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
+    .congrats-apple-icon {
+      font-size: 50px;
+      animation: bounce 0.8s infinite alternate;
+      display: inline-block;
+      margin: 6px 0;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0px) scale(0.95); }
+      to { transform: translateY(-10px) scale(1.05); }
+    }
+
+    /* 匯入彈窗樣式 */
+    .import-tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 6px;
+    }
+    .import-tab-nav button {
+      flex: 1;
+      padding: 6px;
+      border: none;
+      background: #F1F2F6;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 11.5px;
+      cursor: pointer;
+      color: #4A5568;
+    }
+    .import-tab-nav button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .file-drop-area {
+      border: 2px dashed #CBD5E0;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      background: #F7FAFC;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+
+    .preview-table-box {
+      max-height: 150px;
+      overflow-y: auto;
+      margin: 10px 0;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      text-align: left;
+    }
+    .preview-table-box table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .preview-table-box th, .preview-table-box td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #EDF2F7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部欄目與班別切換 -->
+  <header>
+    <div class="title-box">
+      <h1>🌟 Love To Learn, Learn To Love 成長果園</h1>
+      <p>東華三院李賜豪小學 · 課堂激勵與生活點滴記錄</p>
+    </div>
+    <div class="class-tabs">
+      <button class="tab-btn active" onclick="switchClass('1C')">🏫 1C (班級經營/數學/音樂 17人)</button>
+      <button class="tab-btn" onclick="switchClass('2A')">🎵 2A (音樂 20人)</button>
+      <button class="tab-btn" onclick="switchClass('4A_math')">📐 4數A (跨班分組 17人)</button>
+      <button class="tab-btn" onclick="switchClass('4A_sci')">🔬 4A (科學 25人)</button>
+    </div>
+  </header>
+
+  <!-- 主體區域 -->
+  <div class="main-container">
+    
+    <!-- 左側操作區 (1/3) -->
+    <div class="left-panel">
+      
+      <!-- 功能一：名單管理與匯入 (恢復完整專屬區塊) -->
+      <div class="panel-block">
+        <div class="panel-title">👥 名單管理與匯入</div>
+        <button class="action-btn btn-special-import" onclick="openImportModal()">
+          📂 匯入名單 (Excel/Word/PDF/手動)
+        </button>
+      </div>
+
+      <!-- 蘋果獎勵兌換中心 -->
+      <div class="panel-block" style="background: #FFF5F5; border-color: #FF7675;">
+        <div class="panel-title" style="color: #D63031;">🎁 蘋果禮物兌換中心</div>
+        <button class="action-btn btn-apple" style="width: 100%;" onclick="batchRedeemApples()">
+          🍎 辦理已選學生兌換 (扣減1個🍎)
+        </button>
+        <div style="font-size: 10px; color: #888; margin-top: 4px; text-align: center;">
+          滿 30 分結出 1 🍎 重新生長 | 換禮物扣減 1 🍎
+        </div>
+      </div>
+
+      <!-- 快捷工具 -->
+      <div class="panel-block">
+        <div class="panel-title">⚡ 課堂工具與榜單</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-teal" onclick="selectAll(true)">全選本班</button>
+          <button class="action-btn btn-orange" onclick="selectAll(false)">取消全選</button>
+          <button class="action-btn btn-purple" onclick="openLottery()">🎲 幸運點名抽籤</button>
+          <button class="action-btn btn-pink" onclick="openRankModal('total')">🏆 榮譽排行榜</button>
+          <button class="action-btn btn-green" onclick="openRankModal('week')">🌟 本週光榮榜</button>
+          <button class="action-btn btn-teal" onclick="customScorePrompt()">✏️ 自訂增減分</button>
+        </div>
+      </div>
+
+      <!-- 功能二：學科與常規加分 (+1) (原版 6 顆高彩按鈕全面恢復) -->
+      <div class="panel-block">
+        <div class="panel-title">🎯 學科與常規加分 (+1)</div>
+        <div class="category-label">通用 / 數 / 科 / 音</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-green" onclick="applyScore(1, '課堂亮眼')">👍 課堂亮眼</button>
+          <button class="action-btn btn-green" onclick="applyScore(1, '口算神速')">⚡ 口算神速</button>
+          <button class="action-btn btn-green" onclick="applyScore(1, '優秀作業')">📖 優秀作業</button>
+          <button class="action-btn btn-teal" onclick="applyScore(1, '科學探究')">🔬 科學探究</button>
+          <button class="action-btn btn-purple" onclick="applyScore(1, '歌唱樂器')">🎵 歌唱樂器</button>
+          <button class="action-btn btn-orange" onclick="applyScore(1, '樂於思考')">💡 樂於思考</button>
+        </div>
+      </div>
+
+      <!-- 1C 班級經營專屬養成 (+1) -->
+      <div class="panel-block" id="homeroom-positive" style="display: block;">
+        <div class="panel-title">🌱 1C 班級經營養成 (+1)</div>
+        <div class="category-label">衞生清潔類</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-teal" onclick="applyScore(1, '桌子整潔')">🪑 桌子整潔</button>
+          <button class="action-btn btn-teal" onclick="applyScore(1, '地上乾淨')">🧹 地上乾淨</button>
+          <button class="action-btn btn-teal" onclick="applyScore(1, '課室衛生')">✨ 維護公物</button>
+        </div>
+        <div class="category-label" style="margin-top:4px;">紀律活動類</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-pink" onclick="applyScore(1, '專心早讀')">📚 專心早讀</button>
+          <button class="action-btn btn-pink" onclick="applyScore(1, '交齊功課')">📝 交齊功課</button>
+          <button class="action-btn btn-pink" onclick="applyScore(1, '投入活動')">🏃 投入活動</button>
+        </div>
+      </div>
+
+      <!-- 溫和提醒/減分區 (-1) -->
+      <div class="panel-block">
+        <div class="panel-title" style="color: var(--danger)">⚠️ 溫和提醒與調整 (-1)</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-danger" onclick="applyScore(-1, '課堂多言分心')">🤫 多言 / 分心</button>
+          <button class="action-btn btn-danger" onclick="applyScore(-1, '欠交作業')">📋 欠交作業</button>
+          <button class="action-btn btn-danger" onclick="applyScore(-1, '隊列未達標')">🚶 隊列未達標</button>
+          <button class="action-btn btn-danger" onclick="applyScore(-1, '未帶學具')">🎒 忘帶學具</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側學生名單區 (2/3) -->
+    <div class="right-panel">
+      <div class="roster-header">
+        <div class="selection-info">
+          當前課程班別：<strong id="current-class-label" style="color:var(--primary); font-size:13.5px;">1C</strong> | 
+          學生人數：<span id="total-student-count" style="color:var(--primary); font-weight:bold;">17</span> 人 |
+          已選中：<span id="selected-count" style="color:var(--accent-orange); font-weight:bold;">0</span> 人
+        </div>
+        <div style="font-size: 10.5px; color: #747D8C;">
+          🌱幼苗(0-9) → 🌿小樹(10-19) → 🌳大樹(20-29) → 🍎結出果實(30分)
+        </div>
+      </div>
+
+      <!-- 學生卡片陳列網格 -->
+      <div class="student-grid" id="student-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- 匯入 / 新增名單彈窗 -->
+  <div class="modal" id="import-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('import-modal')">&times;</span>
+      <h2 style="color:var(--primary); font-size:18px;">📋 匯入 / 新增學生名單</h2>
+      <p style="font-size:12px; color:#666; margin: 4px 0 10px;">目標班級：<b id="import-target-class" style="color:var(--primary);">1C</b></p>
+      
+      <div class="import-tab-nav">
+        <button id="tab-file-btn" class="active" onclick="switchImportSubTab('file')">📂 檔案 (Excel/Word/PDF)</button>
+        <button id="tab-manual-btn" onclick="switchImportSubTab('manual')">✍️ 手動快速輸入</button>
+      </div>
+
+      <div id="subtab-file">
+        <div class="file-drop-area" onclick="document.getElementById('file-input').click()">
+          <span style="font-size:26px;">📑</span>
+          <p style="font-weight:bold; font-size:13px; color:#2D3748; margin-top:4px;">點擊選擇 或 拖曳檔案</p>
+          <p style="font-size:11px; color:#718096;">支援 .xlsx, .xls, .csv, .docx, .pdf</p>
+        </div>
+        <input type="file" id="file-input" style="display:none" accept=".xlsx,.xls,.csv,.docx,.pdf" onchange="handleFileSelect(event)">
+        <div id="parse-status" style="font-size:12px; color:var(--primary); font-weight:bold;"></div>
+      </div>
+
+      <div id="subtab-manual" style="display:none; text-align: left;">
+        <div style="display:flex; gap:6px; margin-bottom: 8px;">
+          <input type="number" id="single-id" placeholder="學號" style="width:60px; padding:6px; border:1.5px solid #E2E8F0; border-radius:6px; font-size:12px;">
+          <input type="text" id="single-name" placeholder="學生姓名" style="flex:1; padding:6px; border:1.5px solid #E2E8F0; border-radius:6px; font-size:12px;">
+          <button class="action-btn btn-teal" style="padding:6px 12px;" onclick="addSingleStudent()">加入</button>
+        </div>
+        <textarea id="batch-text" class="text-input" style="height:75px;" placeholder="批量貼上（每行一位，例如「1 陳小明」或純名字）"></textarea>
+        <button class="action-btn btn-teal" style="width:100%; margin-bottom:6px;" onclick="parseBatchText()">解析名單</button>
+      </div>
+
+      <div id="preview-section" style="display:none;">
+        <div style="font-size:12px; font-weight:bold; text-align:left; color:#2D3748;">
+          解析預覽（共 <span id="preview-count" style="color:var(--primary);">0</span> 人）：
+        </div>
+        <div class="preview-table-box">
+          <table>
+            <thead><tr><th>學號</th><th>姓名</th><th>刪除</th></tr></thead>
+            <tbody id="preview-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="action-btn btn-teal" style="flex:1;" onclick="confirmImport(false)">➕ 追加名單</button>
+          <button class="action-btn btn-pink" style="flex:1;" onclick="confirmImport(true)">🔄 覆蓋名單</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 恭喜獲得蘋果彈窗 -->
+  <div class="modal" id="congrats-modal">
+    <div class="modal-content" style="max-width: 340px; background: #FFF9E6; border: 3px solid #FFE66D;">
+      <span class="close-btn" onclick="closeModal('congrats-modal')">&times;</span>
+      <div class="congrats-apple-icon">🍎</div>
+      <h2 style="color: #D63031; font-size: 20px;">太棒了！果實豐收！</h2>
+      <p id="congrats-text" style="font-size: 14px; font-weight: bold; margin: 8px 0 12px; color: #2F3542;"></p>
+      <p style="font-size: 11.5px; color: #718096; line-height: 1.4;">
+        恭喜積滿 30 分獲得 1 個蘋果！果樹已重新萌芽，繼續加油收穫下一顆！🍎✨
+      </p>
+      <button class="action-btn btn-apple" style="margin: 12px auto 0; padding: 7px 20px; font-size: 13px;" onclick="closeModal('congrats-modal')">繼續努力！</button>
+    </div>
+  </div>
+
+  <!-- 抽籤彈窗 -->
+  <div class="modal" id="lottery-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('lottery-modal')">&times;</span>
+      <h2>🎲 幸運回答小明星</h2>
+      <p style="color:#777; font-size: 12px; margin-top:3px;">請準備好你的精彩分享！</p>
+      <div class="lottery-roll" id="lottery-result">準備中...</div>
+      <button class="action-btn btn-purple" style="margin: 0 auto; padding: 7px 18px;" onclick="rollStudent()">再次隨機抽取</button>
+    </div>
+  </div>
+
+  <!-- 排行榜彈窗 -->
+  <div class="modal" id="rank-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('rank-modal')">&times;</span>
+      <h2 id="rank-title">🏆 榮譽排行榜</h2>
+      <div class="rank-list" id="rank-content"></div>
+    </div>
+  </div>
+
+  <!-- 家長日校園點滴記錄彈窗 -->
+  <div class="modal" id="notes-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('notes-modal')">&times;</span>
+      <h2 id="note-student-title">📝 學生校園生活點滴速記</h2>
+      <p style="font-size: 11.5px; color: #888; margin-top:3px;">記錄平時課堂亮眼表現、學習弱項或性格習慣，家長日個別詳述。</p>
+      <textarea class="note-input" id="student-notes" placeholder="例如：課堂發問積極，口算能力好；做實驗時很細心..."></textarea>
+      <button class="action-btn btn-green" style="margin: 0 auto; padding: 7px 20px;" onclick="saveStudentNotes()">儲存點滴</button>
+    </div>
+  </div>
+
+  <script>
+    // 預載完整名單
+    const baseStudentData = {
+      '1C': [
+        { id: 1, name: '程卓堯', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 2, name: '簡煒駿', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 3, name: '管沐慧', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 4, name: '黎恭行', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 5, name: '林靖軒', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 6, name: '梁凱淇', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 7, name: '羅煦程', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 8, name: '馬穎林', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 9, name: '王娜美', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 10, name: '蕭子博', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 11, name: '蕭奕霏', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 12, name: '蕭遙', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 13, name: '鄧立言', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 14, name: '王振羽', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 15, name: '邱梓灝', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 16, name: '張嘉恩', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 17, name: '凌詩涵', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' }
+      ],
+      '2A': [
+        { id: 1, name: '陳詩悅', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 2, name: '譚天浩', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 3, name: '蔡牧宸', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 4, name: '何思潁', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 5, name: '黎爾正', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 6, name: '黎祉希', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 7, name: '劉焯安', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 8, name: '李志恆', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 9, name: '李明德', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 10, name: '劉子木', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 11, name: '陸樂', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 12, name: '吳俊熹', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 13, name: '蘇芊悅', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 14, name: '宋臻晟', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '插班生' },
+        { id: 15, name: '蘇子怡', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 16, name: '黃銘恩', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 17, name: '黃博謙', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 18, name: '邱敏思', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '插班生' },
+        { id: 19, name: '楊帕晞', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 20, name: '叶子然', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' }
+      ],
+      '4A_math': [
+        { id: 1, orgClass: '4A', orgNo: 8, name: '徐熙言', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 2, orgClass: '4A', orgNo: 9, name: '江思遠', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '插班生' },
+        { id: 3, orgClass: '4A', orgNo: 10, name: '林頌劻', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 4, orgClass: '4A', orgNo: 12, name: '梁焯研', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 5, orgClass: '4A', orgNo: 19, name: 'SEHJBIR KAUR', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 6, orgClass: '4A', orgNo: 22, name: '王皓然', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 7, orgClass: '4A', orgNo: 24, name: '游采樺', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 8, orgClass: '4A', orgNo: 25, name: '余稼俊', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 9, orgClass: '4B', orgNo: 1, name: '曹道可', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 10, orgClass: '4B', orgNo: 2, name: '陳至恆', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 11, orgClass: '4B', orgNo: 3, name: '陳尚言', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 12, orgClass: '4B', orgNo: 6, name: '周政朗', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 13, orgClass: '4B', orgNo: 7, name: '蔡知位', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 14, orgClass: '4B', orgNo: 10, name: '郭溢翹', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 15, orgClass: '4B', orgNo: 11, name: '賴豫辛', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 16, orgClass: '4B', orgNo: 20, name: '麥恬心', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 17, orgClass: '4B', orgNo: 24, name: '黃星澄', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' }
+      ],
+      '4A_sci': [
+        { id: 1, name: '區樂堯', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 2, name: '曹道明', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 3, name: '陳智華', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 4, name: '陳栢希', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 5, name: '陳麒宇', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 6, name: '陳澤平', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 7, name: '張芯穎', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 8, name: '徐熙言', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 9, name: '江思遠', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '插班生' },
+        { id: 10, name: '林頌劻', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 11, name: '李宇軒', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 12, name: '梁焯研', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 13, name: '梁杰', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 14, name: '梁宇逸', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 15, name: '李晉弘', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 16, name: '李言蹊', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 17, name: '彭光美', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 18, name: '梁迪雅', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 19, name: 'SEHJBIR KAUR', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 20, name: '冼柏叡', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 21, name: '譚樂文', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 22, name: '王皓然', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 23, name: '胡雋', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 24, name: '游采樺', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' },
+        { id: 25, name: '余稼俊', score: 0, apples: 0, redeemed: 0, weekScore: 0, notes: '' }
+      ]
+    };
+
+    const STORAGE_KEY = 'classroom_twghs_v7';
+    let classes = baseStudentData;
+
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (cached) {
+        classes = JSON.parse(cached);
+      }
+    } catch(e) {}
+
+    let currentClass = '1C';
+    let selectedStudentIds = new Set();
+    let currentNoteStudentId = null;
+    let stagedStudents = [];
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(classes));
+      } catch(e) {}
+    }
+
+    function getTreeInfo(score) {
+      if (score >= 20) return { icon: '🌳', label: '枝繁葉茂' };
+      if (score >= 10) return { icon: '🌿', label: '初長成樹' };
+      return { icon: '🌱', label: '破土幼苗' };
+    }
+
+    function switchClass(cls) {
+      currentClass = cls;
+      selectedStudentIds.clear();
+      
+      const tabMap = {
+        '1C': '1C',
+        '2A': '2A',
+        '4A_math': '4數A',
+        '4A_sci': '4A (科學'
+      };
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.includes(tabMap[cls]));
+      });
+
+      const titles = {
+        '1C': '1C 班 (班級經營/數學/音樂 17人)',
+        '2A': '2A 班 (音樂科 20人)',
+        '4A_math': '4數A (數學分組 17人)',
+        '4A_sci': '4A 班 (科學科全班 25人)'
+      };
+      document.getElementById('current-class-label').innerText = titles[cls] || cls;
+
+      const homeroomSection = document.getElementById('homeroom-positive');
+      homeroomSection.style.display = (cls === '1C') ? 'block' : 'none';
+
+      renderStudents();
+    }
+
+    function renderStudents() {
+      const grid = document.getElementById('student-grid');
+      grid.innerHTML = '';
+      const list = classes[currentClass] || [];
+
+      list.sort((a, b) => a.id - b.id);
+
+      list.forEach(student => {
+        student.apples = student.apples || 0;
+        student.redeemed = student.redeemed || 0;
+
+        const isSelected = selectedStudentIds.has(student.id);
+        const tree = getTreeInfo(student.score);
+        const progressPercent = Math.min(100, Math.round((student.score / 30) * 100));
+
+        const card = document.createElement('div');
+        card.className = `student-card ${isSelected ? 'selected' : ''}`;
+        card.onclick = (e) => toggleStudentSelect(student.id, e);
+
+        let subBadgeHtml = '';
+        if (student.orgClass) {
+          subBadgeHtml = `<span class="sub-badge">${student.orgClass}(${student.orgNo})</span>`;
+        }
+
+        let appleBadgeHtml = '';
+        if (student.apples > 0) {
+          appleBadgeHtml = `
+            <div class="apple-badge" title="可兌換禮物數">🍎 × ${student.apples}</div>
+            <button class="btn-quick-redeem" onclick="quickRedeemOne(${student.id}, event)">換禮物</button>
+          `;
+        } else {
+          appleBadgeHtml = `<span style="font-size:9.5px; color:#A0AEC0; margin-top:2px;">🍎 × 0</span>`;
+        }
+
+        let redeemedInfoHtml = '';
+        if (student.redeemed > 0) {
+          redeemedInfoHtml = `<div class="redeemed-badge">已換: ${student.redeemed}次</div>`;
+        }
+
+        card.innerHTML = `
+          <div class="badge-num">${student.id}</div>
+          ${subBadgeHtml}
+          <button class="btn-notes" title="家長日校園點滴速記" onclick="openNotesModal(${student.id}, event)">📝</button>
+          <div class="tree-display">${tree.icon}</div>
+          <div class="tree-stage">${tree.label}</div>
+          <div class="student-name">${student.name}</div>
+
+          <div class="growth-bar-box" title="${student.score}/30 分">
+            <div class="growth-bar-fill" style="width: ${progressPercent}%;"></div>
+          </div>
+          <div class="score-label">⭐ ${student.score}/30 分</div>
+
+          <div class="apple-badge-container">
+            ${appleBadgeHtml}
+            ${redeemedInfoHtml}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.getElementById('selected-count').innerText = selectedStudentIds.size;
+      document.getElementById('total-student-count').innerText = list.length;
+    }
+
+    function toggleStudentSelect(id, event) {
+      if (selectedStudentIds.has(id)) {
+        selectedStudentIds.delete(id);
+      } else {
+        selectedStudentIds.add(id);
+      }
+      renderStudents();
+    }
+
+    function selectAll(shouldSelect) {
+      const list = classes[currentClass] || [];
+      if (shouldSelect) {
+        list.forEach(s => selectedStudentIds.add(s.id));
+      } else {
+        selectedStudentIds.clear();
+      }
+      renderStudents();
+    }
+
+    function applyScore(points, reason) {
+      if (selectedStudentIds.size === 0) {
+        alert('請先在右側點擊選擇學生（可選多位或點擊「全選本班」）！');
+        return;
+      }
+
+      let appleWinners = [];
+
+      classes[currentClass].forEach(student => {
+        if (selectedStudentIds.has(student.id)) {
+          student.score = (student.score || 0) + points;
+          student.weekScore = Math.max(0, (student.weekScore || 0) + points);
+
+          if (student.score < 0) {
+            student.score = 0;
+          }
+
+          if (student.score >= 30) {
+            const newApples = Math.floor(student.score / 30);
+            student.apples = (student.apples || 0) + newApples;
+            student.score = student.score % 30;
+            appleWinners.push(`${student.name} (+${newApples} 🍎)`);
+          }
+        }
+      });
+
+      saveData();
+      renderStudents();
+
+      if (appleWinners.length > 0) {
+        showCongratsModal(appleWinners);
+      }
+    }
+
+    function showCongratsModal(winners) {
+      const textEl = document.getElementById('congrats-text');
+      textEl.innerHTML = winners.join('<br>');
+      document.getElementById('congrats-modal').style.display = 'flex';
+    }
+
+    function customScorePrompt() {
+      if (selectedStudentIds.size === 0) {
+        alert('請先選擇學生！');
+        return;
+      }
+      const val = prompt('請輸入要調整的分數（例如：+2 或 -2）：', '2');
+      if (val !== null) {
+        const points = parseInt(val, 10);
+        if (!isNaN(points)) {
+          applyScore(points, '自訂調整');
+        } else {
+          alert('請輸入有效整數！');
+        }
+      }
+    }
+
+    function quickRedeemOne(studentId, event) {
+      event.stopPropagation();
+      const student = classes[currentClass].find(s => s.id === studentId);
+      if (!student || (student.apples || 0) <= 0) return;
+
+      if (confirm(`確定為 ${student.name} 兌換 1 份獎勵禮物嗎？\n（將扣除 1 個 🍎，並自動記錄到已兌換次數）`)) {
+        student.apples -= 1;
+        student.redeemed = (student.redeemed || 0) + 1;
+        saveData();
+        renderStudents();
+      }
+    }
+
+    function batchRedeemApples() {
+      if (selectedStudentIds.size === 0) {
+        alert('請先在右側選擇要辦理兌換禮物的學生！');
+        return;
+      }
+
+      const selectedStudents = classes[currentClass].filter(s => selectedStudentIds.has(s.id));
+      const canRedeem = selectedStudents.filter(s => (s.apples || 0) > 0);
+
+      if (canRedeem.length === 0) {
+        alert('所選學生中目前沒有人擁有可用的 🍎 蘋果！');
+        return;
+      }
+
+      const names = canRedeem.map(s => `${s.name} (存有 ${s.apples} 🍎)`).join('\n');
+      if (confirm(`即將為以下 ${canRedeem.length} 位同學各扣除 1 個 🍎 兌換禮物：\n\n${names}\n\n確定兌換嗎？`)) {
+        canRedeem.forEach(s => {
+          s.apples -= 1;
+          s.redeemed = (s.redeemed || 0) + 1;
+        });
+        saveData();
+        renderStudents();
+        alert('🎉 兌換完成！已更新蘋果庫存與次數。');
+      }
+    }
+
+    /* ---------------- 名單匯入功能 ---------------- */
+    function openImportModal() {
+      document.getElementById('import-target-class').innerText = currentClass;
+      document.getElementById('parse-status').innerText = '';
+      stagedStudents = [];
+      renderPreview();
+      document.getElementById('import-modal').style.display = 'flex';
+    }
+
+    function switchImportSubTab(tab) {
+      const isFile = tab === 'file';
+      document.getElementById('tab-file-btn').className = isFile ? 'active' : '';
+      document.getElementById('tab-manual-btn').className = !isFile ? 'active' : '';
+      document.getElementById('subtab-file').style.display = isFile ? 'block' : 'none';
+      document.getElementById('subtab-manual').style.display = !isFile ? 'block' : 'none';
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const fileName = file.name.toLowerCase();
+      const status = document.getElementById('parse-status');
+      status.innerText = `正在讀取 ${file.name} ...`;
+
+      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
+        parseExcelFile(file);
+      } else if (fileName.endsWith('.docx')) {
+        parseDocxFile(file);
+      } else if (fileName.endsWith('.pdf')) {
+        parsePdfFile(file);
+      } else {
+        alert('請上傳 Excel, Word 或 PDF 檔案！');
+        status.innerText = '';
+      }
+      event.target.value = '';
+    }
+
+    function parseExcelFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+          const extracted = [];
+          let defaultId = 1;
+
+          json.forEach(row => {
+            if (!row || row.length === 0) return;
+            let id = null, name = '';
+
+            for (let cell of row) {
+              if (cell === undefined || cell === null) continue;
+              let str = String(cell).trim();
+              if (!str) continue;
+
+              if (str.includes('學號') || str.includes('姓名') || str.includes('Name') || str.includes('No.')) {
+                id = -999;
+                break;
+              }
+
+              if (!isNaN(str) && id === null) {
+                id = parseInt(str, 10);
+              } else if (isNaN(str) && !name) {
+                name = str.replace(/^[0-9]+[.\s、\-]*/, '');
+              }
+            }
+
+            if (id === -999) return;
+            if (name) {
+              extracted.push({ id: (id && id > 0) ? id : defaultId++, name });
+            }
+          });
+
+          processParsedList(extracted);
+        } catch (err) {
+          alert('解析 Excel 失敗：' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseDocxFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mammoth.extractRawText({ arrayBuffer: e.target.result })
+          .then(result => extractNamesFromTextLines(result.value))
+          .catch(err => alert('解析 Word 失敗：' + err.message));
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parsePdfFile(file) {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const typedarray = new Uint8Array(e.target.result);
+          const pdf = await pdfjsLib.getDocument(typedarray).promise;
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+          }
+          extractNamesFromTextLines(fullText);
+        } catch (err) {
+          alert('解析 PDF 失敗：' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function extractNamesFromTextLines(text) {
+      const lines = text.split(/[\r\n]+/);
+      const extracted = [];
+      let autoId = 1;
+
+      lines.forEach(line => {
+        let clean = line.trim();
+        if (!clean || clean.length < 2) return;
+        if (clean.includes('學號') || clean.includes('名單') || clean.includes('Class') || clean.includes('Grade')) return;
+
+        const match = clean.match(/^(\d+)[\.\s、\-]+([\u4e00-\u9fa5a-zA-Z\s]+)/);
+        if (match) {
+          extracted.push({ id: parseInt(match[1], 10), name: match[2].trim() });
+        } else {
+          const tokens = clean.split(/\s+/);
+          tokens.forEach(tok => {
+            if (tok.length >= 2 && !/^\d+$/.test(tok)) {
+              extracted.push({ id: autoId++, name: tok });
+            }
+          });
+        }
+      });
+
+      processParsedList(extracted);
+    }
+
+    function addSingleStudent() {
+      const idInput = document.getElementById('single-id');
+      const nameInput = document.getElementById('single-name');
+      const name = nameInput.value.trim();
+      let id = parseInt(idInput.value, 10);
+
+      if (!name) {
+        alert('請輸入姓名！');
+        return;
+      }
+      if (isNaN(id) || id <= 0) {
+        id = stagedStudents.length > 0 ? Math.max(...stagedStudents.map(s => s.id)) + 1 : 1;
+      }
+
+      stagedStudents.push({ id, name });
+      idInput.value = '';
+      nameInput.value = '';
+      renderPreview();
+    }
+
+    function parseBatchText() {
+      const raw = document.getElementById('batch-text').value;
+      if (!raw.trim()) {
+        alert('請貼上內容！');
+        return;
+      }
+      extractNamesFromTextLines(raw);
+    }
+
+    function processParsedList(list) {
+      if (list.length === 0) {
+        alert('未在檔案中找到姓名！');
+        document.getElementById('parse-status').innerText = '';
+        return;
+      }
+      stagedStudents = list;
+      document.getElementById('parse-status').innerText = `✅ 成功辨識 ${list.length} 人！`;
+      renderPreview();
+    }
+
+    function renderPreview() {
+      const section = document.getElementById('preview-section');
+      const tbody = document.getElementById('preview-tbody');
+      const countSpan = document.getElementById('preview-count');
+
+      if (stagedStudents.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      countSpan.innerText = stagedStudents.length;
+      tbody.innerHTML = stagedStudents.map((s, idx) => `
+        <tr>
+          <td><input type="number" value="${s.id}" style="width:40px;" onchange="stagedStudents[${idx}].id = parseInt(this.value,10)"></td>
+          <td><input type="text" value="${s.name}" style="width:90px;" onchange="stagedStudents[${idx}].name = this.value"></td>
+          <td><button style="color:red; border:none; background:transparent;" onclick="stagedStudents.splice(${idx},1); renderPreview();">✕</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function confirmImport(overwrite) {
+      if (stagedStudents.length === 0) return;
+      if (!classes[currentClass]) classes[currentClass] = [];
+
+      if (overwrite) {
+        if (!confirm(`確定要覆蓋 ${currentClass} 班的名單嗎？`)) return;
+        classes[currentClass] = stagedStudents.map(s => ({
+          id: s.id,
+          name: s.name,
+          score: 0,
+          apples: 0,
+          redeemed: 0,
+          weekScore: 0,
+          notes: ''
+        }));
+      } else {
+        const currentIds = new Set(classes[currentClass].map(s => s.id));
+        stagedStudents.forEach(s => {
+          let finalId = s.id;
+          while (currentIds.has(finalId)) finalId++;
+          currentIds.add(finalId);
+          classes[currentClass].push({
+            id: finalId,
+            name: s.name,
+            score: 0,
+            apples: 0,
+            redeemed: 0,
+            weekScore: 0,
+            notes: ''
+          });
+        });
+      }
+
+      saveData();
+      renderStudents();
+      closeModal('import-modal');
+      alert(`🎉 成功更新 ${currentClass} 班名單！`);
+    }
+
+    /* ---------------- 抽籤、排行、備忘 ---------------- */
+    let rollTimer = null;
+    function openLottery() {
+      const list = classes[currentClass] || [];
+      if (list.length === 0) {
+        alert('當前班級暫無名單！');
+        return;
+      }
+      document.getElementById('lottery-modal').style.display = 'flex';
+      rollStudent();
+    }
+
+    function rollStudent() {
+      const list = classes[currentClass];
+      const resultBox = document.getElementById('lottery-result');
+      let count = 0;
+      clearInterval(rollTimer);
+
+      rollTimer = setInterval(() => {
+        const rand = list[Math.floor(Math.random() * list.length)];
+        resultBox.innerText = `${rand.id}號 ${rand.name}`;
+        count++;
+        if (count > 15) {
+          clearInterval(rollTimer);
+          resultBox.innerText = `🎉 ${resultBox.innerText} 🎉`;
+        }
+      }, 70);
+    }
+
+    function openRankModal(type) {
+      const modal = document.getElementById('rank-modal');
+      const title = document.getElementById('rank-title');
+      const content = document.getElementById('rank-content');
+      modal.style.display = 'flex';
+
+      const isWeek = (type === 'week');
+      title.innerText = isWeek ? '🌟 本週表現光榮榜' : '🏆 蘋果榮譽總榜 (蘋果數+當前分)';
+
+      const sorted = [...(classes[currentClass] || [])].sort((a, b) => {
+        if (isWeek) {
+          return (b.weekScore || 0) - (a.weekScore || 0);
+        } else {
+          const totalA = ((a.apples || 0) + (a.redeemed || 0)) * 30 + a.score;
+          const totalB = ((b.apples || 0) + (b.redeemed || 0)) * 30 + b.score;
+          return totalB - totalA;
+        }
+      });
+
+      content.innerHTML = sorted.map((s, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        const appleTotal = (s.apples || 0) + (s.redeemed || 0);
+        const detail = isWeek 
+          ? `<span style="color:var(--primary)">${s.weekScore || 0} 週積分</span>`
+          : `<span>🍎 總得 ${appleTotal} 個 | 現有 ${s.apples} 個 | ⭐ ${s.score} 分</span>`;
+        return `
+          <div class="rank-item">
+            <span>${medal} ${s.name} (${s.id}號)</span>
+            ${detail}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openNotesModal(studentId, event) {
+      event.stopPropagation();
+      currentNoteStudentId = studentId;
+      const student = classes[currentClass].find(s => s.id === studentId);
+      document.getElementById('note-student-title').innerText = `📝 ${student.name} (${student.id}號) 生活點滴`;
+      document.getElementById('student-notes').value = student.notes || '';
+      document.getElementById('notes-modal').style.display = 'flex';
+    }
+
+    function saveStudentNotes() {
+      const notes = document.getElementById('student-notes').value;
+      const student = classes[currentClass].find(s => s.id === currentNoteStudentId);
+      if (student) {
+        student.notes = notes;
+        saveData();
+      }
+      closeModal('notes-modal');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+      }
+    };
+
+    switchClass('1C');
+  </script>
+</body>
+</html>
